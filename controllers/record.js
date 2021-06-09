@@ -3,7 +3,7 @@ const db = require('../db');
 class RecordController {
     async getAll(req, res) {
         try {
-            const records = await db.query('SELECT * FROM record');
+            const records = await db.query('SELECT * FROM record ORDER BY id DESC');
             res.json(records.rows);
         } catch (e) {
             res.status(500).json({
@@ -15,6 +15,11 @@ class RecordController {
     async create(req, res) {
         try {
             const { name, value } = req.body;
+            if (!name && !value) {
+                return res.status(400).json({
+                    message: 'name and value cannot be empty at the same time',
+                });
+            }
             const record = await db.query(
                 'INSERT INTO record (name, value) values($1, $2) RETURNING *',
                 [name, value],
@@ -30,6 +35,13 @@ class RecordController {
     async update(req, res) {
         try {
             const { id, name, value } = req.body;
+
+            if (!name && !value) {
+                return res.status(400).json({
+                    message: 'name and value cannot be empty at the same time',
+                });
+            }
+
             const record = await db.query(
                 'UPDATE record set name = $1, value = $2 where id = $3 RETURNING *',
                 [name, value, id],
